@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null &&
+             exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    function okStr(d, k, n) { return !(k in d) || (d[k] is string && d[k].size() <= n); }
+
+    // Admin list: a user may only read their own entry. Add admins in the Firebase console.
+    match /admins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // Website content: public read, admin write
+    match /settings/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /about/{id}    { allow read: if true; allow write: if isAdmin(); }
+    match /hero/{id}     { allow read: if true; allow write: if isAdmin(); }
+    match /services/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /products/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /team/{id}     { allow read: if true; allow write: if isAdmin(); }
+    match /values/{id}   { allow read: if true; allow write: if isAdmin(); }
+    match /stats/{id}    { allow read: if true; allow write: if isAdmin(); }
+
+    // Media library: admin only
+    match /media/{id} { allow read, write: if isAdmin(); }
+
+    // Contact / quote submissions: anyone may create (validated), only admins read/manage
+    match /messages/{id} {
+      allow create: if request.resource.data.keys().hasOnly(
+            ['type','name','email','phone','company','service','location','budget','timeline','subject','message','status','createdAt'])
+        && request.resource.data.type in ['quote','contact']
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 120
+        && request.resource.data.message is string && request.resource.data.message.size() > 0 && request.resource.data.message.size() <= 3000
+        && okStr(request.resource.data,'email',200) && okStr(request.resource.data,'phone',40)
+        && okStr(request.resource.data,'company',200) && okStr(request.resource.data,'service',200)
+        && okStr(request.resource.data,'location',200) && okStr(request.resource.data,'budget',200)
+        && okStr(request.resource.data,'timeline',200) && okStr(request.resource.data,'subject',200)
+        && request.resource.data.status == 'new'
+        && request.resource.data.createdAt == request.time;
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}
