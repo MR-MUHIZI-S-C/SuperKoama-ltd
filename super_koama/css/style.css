@@ -1353,14 +1353,18 @@ img {
 
 .quote-info h3 {
     font-size: 24px;
-    color: var(--white);
+    color: #111111;
     margin-bottom: 30px;
 }
 
 .quote-info p {
-    color: rgba(255,255,255,0.8);
+    color: #111111;
     margin-bottom: 30px;
     line-height: 1.8;
+}
+
+.quote-info ul {
+    color: #111111;
 }
 
 .quote-contact-item {
@@ -1534,6 +1538,17 @@ img {
         order: -1;
         background: var(--black);
         border-radius: 10px;
+    }
+
+    .quote-info h3,
+    .quote-info h4,
+    .quote-info .quote-contact-item {
+        color: var(--white);
+    }
+
+    .quote-info p,
+    .quote-info ul {
+        color: rgba(255,255,255,0.85);
     }
 }
 
